@@ -19,3 +19,10 @@ class SingletonMeta(type):
             instance = super().__call__(*args, **kwargs)
             cls._instances[cls] = instance
         return cls._instances[cls]
+
+
+class Singleton(object):
+    def __new__(cls):
+        if not hasattr(cls, "instance"):
+            cls.instance = super(Singleton, cls).__new__(cls)
+        return cls.instance

@@ -5,21 +5,9 @@ from typing import Dict
 from django.http import HttpRequest, HttpResponse
 
 from bruteguard.patterns.composite import Composite, Leaf
-from bruteguard.queues import DjangoCacheQueue
+from bruteguard.queues import BaseQueue, DjangoCacheQueue, SingletonQueue
 
 logger = logging.getLogger(__name__)
-
-
-class DjangoCacheManager(Composite):
-    QUEUE = DjangoCacheQueue()
-
-    def operation(self, request, response):
-        logger.debug("[%s.operation() started]" % self.__class__.__name__)
-        assert isinstance(request, HttpRequest)
-        assert isinstance(response, HttpResponse)
-        for item in self._children:
-            item.operation(request, response)
-        logger.debug("[%s.operation() ended]" % self.__class__.__name__)
 
 
 class HistoryUpdateLeaf(Leaf):
@@ -72,3 +60,27 @@ class HistoryUpdateLeaf(Leaf):
                     result = [REQUEST_BODY]
                 self.parent.QUEUE.set(KEY, result)
         logger.debug("[%s.operation() ended]" % self.__class__.__name__)
+
+
+class BaseManager(Composite):
+    QUEUE = BaseQueue
+
+    def __init__(self, *args, **kwargs):
+        self.QUEUE = self.QUEUE()
+        super().__init__(*args, **kwargs)
+
+    def operation(self, request, response):
+        logger.debug("[%s.operation() started]" % self.__class__.__name__)
+        assert isinstance(request, HttpRequest)
+        assert isinstance(response, HttpResponse)
+        for item in self._children:
+            item.operation(request, response)
+        logger.debug("[%s.operation() ended]" % self.__class__.__name__)
+
+
+class DjangoCacheManager(BaseManager):
+    QUEUE = DjangoCacheQueue
+
+
+class SingletonManager(BaseManager):
+    QUEUE = SingletonQueue

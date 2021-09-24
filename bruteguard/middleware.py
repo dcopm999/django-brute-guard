@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 def brute_guard(get_response):
     logger.debug("[%s.brute_guard] activated" % __name__)
-    mng = managers.DjangoCacheManager()
+    # mng = managers.DjangoCacheManager()
+    mng = managers.SingletonManager()
     mng.add(managers.HistoryUpdateLeaf())
 
     def middleware(request: HttpRequest) -> HttpResponse:
