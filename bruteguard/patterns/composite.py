@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from typing import List
+
+logger = logging.getLogger(__name__)
 
 
 class Component(ABC):
@@ -84,14 +87,21 @@ class Composite(Component):
     """
 
     def add(self, component: Component) -> None:
+        logger.debug(
+            "[%s.add(%s)]" % (self.__class__.__name__, component.__class__.__name__)
+        )
         self._children.append(component)
         component.parent = self
 
     def remove(self, component: Component) -> None:
+        logger.debug(
+            "[%s.remove(%s)]" % (self.__class__.__name__, component.__class__.__name__)
+        )
         self._children.remove(component)
         component.parent = None
 
     def is_composite(self) -> bool:
+        logger.debug("[%s.is_composite() result=True]" % self.__class__.__name__)
         return True
 
     def operation(self) -> None:
@@ -101,5 +111,6 @@ class Composite(Component):
         Поскольку потомки контейнера передают эти вызовы своим потомкам и так
         далее, в результате обходится всё дерево объектов.
         """
+        logger.debug("[%s.operation() started]" % self.__class__.__name__)
         for item in self._children:
             item.operation()

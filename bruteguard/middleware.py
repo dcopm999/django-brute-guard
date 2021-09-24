@@ -1,23 +1,22 @@
-from typing import Dict
+import logging
 
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
+
+from bruteguard import managers
+
+logger = logging.getLogger(__name__)
 
 
 def brute_guard(get_response):
-    def get_body(request) -> Dict[str, str]:
-        body = request.body.decode()
-        result: Dict[str, str] = {}
-        if len(body):
-            for item in body.split("&"):
-                param = item.split("=")
-                result[param[0]] = param[1]
-        return result
+    logger.debug("[%s.brute_guard] activated" % __name__)
+    mng = managers.DjangoCacheManager()
+    mng.add(managers.HistoryUpdateLeaf())
 
-    def middleware(request) -> HttpResponse:
-        response = get_response(request)
-        result = get_body(request)
-        print(result)
-        print(response.status_code)
+    def middleware(request: HttpRequest) -> HttpResponse:
+        logger.debug("[%s.brute_guard] request verification" % __name__)
+        assert isinstance(request, HttpRequest)
+        response: HttpResponse = get_response(request)
+        mng.operation(request, response)
         return response
 
     return middleware

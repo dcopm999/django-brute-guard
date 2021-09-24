@@ -1,82 +1,99 @@
+import logging
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Dict, List
 
 from django.core.cache import caches
 
+logger = logging.getLogger(__name__)
 
-class BaseManager(ABC):
+
+class BaseQueue(ABC):
     @abstractmethod
-    def input_get(self, key):
-        """
-        Абстрактный метод для получения из входной очереди значение по ключу
-        """
+    def get(self, key):
         pass
 
     @abstractmethod
-    def input_set(self, key, value):
+    def set(self, key, value):
         pass
 
     @abstractmethod
-    def input_remove(self, key):
+    def remove(self, key):
         pass
 
     @abstractmethod
-    def output_get(self, key):
-        pass
-
-    @abstractmethod
-    def output_set(self, key, value):
-        pass
-
-    @abstractmethod
-    def output_remove(self, key):
-        pass
-
-    @abstractmethod
-    def input_keys(self):
-        pass
-
-    @abstractmethod
-    def output_keys(self):
+    def has_key(self, key):
         pass
 
 
-class DjangoCacheManager(BaseManager):
-    CACHE_NAME = "bruteguard"
+class DjangoCacheQueue(BaseQueue):
+    CACHE_NAME = "default"  # settings.CACHES backend name
 
-    def __init__(self):
-        self._input_queue = caches[self.CACHE_NAME]
-        self._output_queue = self._input_queue
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        self._queue = caches[self.CACHE_NAME]
+        logger.debug(
+            "[%s.__init__()] using settings.CACHES[%s]"
+            % (self.__class__.__name__, self.CACHE_NAME)
+        )
+        logger.debug(
+            "[%s.__init__()] self._queue type %s[%s]"
+            % (self.__class__.__name__, self._queue.__class__.__name__, self.CACHE_NAME)
+        )
+        super().__init__(*args, **kwargs)
 
-    def input_get(self, key: str) -> str:
+    def get(self, key: str) -> List[Dict]:
         assert isinstance(key, str)
-        return self._input_queue.get(key)
+        result = self._queue.get(key)
+        logger.debug(
+            "[%s.get(key)]: key=%s, result=%s" % (self.__class__.__name__, key, result)
+        )
+        return result
 
-    def input_set(self, key: str, value: str) -> bool:
+    def set(self, key: str, value: List[Dict]) -> bool:
         assert isinstance(key, str)
-        assert isinstance(value, str)
-        return self._input_queue.set(key, value)
+        assert isinstance(value, list)
+        result = self._queue.set(key, value)
+        logger.debug(
+            "[%s.set(key)]: key=%s, result=%s" % (self.__class__.__name__, key, result)
+        )
+        return result
 
-    def input_remove(self, key: str) -> bool:
+    def remove(self, key: str) -> bool:
         assert isinstance(key, str)
-        return self._input_queue.delete(key)
+        result = self._queue.delete(key)
+        logger.debug(
+            "[%s.remove(key)]: key=%s, result=%s"
+            % (self.__class__.__name__, key, result)
+        )
+        return result
 
-    def output_get(self, key: str) -> str:
+    def has_key(self, key) -> bool:
         assert isinstance(key, str)
-        return self._output_queue.get(key)
+        result = key in self._queue
+        logger.debug(
+            "[%s.has_key(key)]: key=%s, result=%s"
+            % (self.__class__.__name__, key, result)
+        )
+        return result
 
-    def output_set(self, key: str, value: str) -> bool:
+
+# TODO: implement Sigleton
+class SingletonQueue(BaseQueue):
+    def __init__(self, *args, **kwargs):
+        self._queue: Dict[str, str] = {}
+        super().__init__(*args, **kwargs)
+
+    def get(self, key: str):
         assert isinstance(key, str)
-        assert isinstance(value, str)
-        return self._output_queue.get(key)
+        return self._queue.get(key)
 
-    def output_remove(self, key: str) -> bool:
+    def set(self, key, value):
         assert isinstance(key, str)
-        return self._output_queue.get(key)
+        assert isinstance(value, list)
+        self._queue[key] = value
 
-    def input_keys(self) -> List[str]:
-        return self._input_queue.keys("*")
+    def remove(self, key):
+        assert isinstance(key, str)
+        self._queue.pop(key)
 
-    def output_keys(self) -> List[str]:
-        return self._output_queue.keys("*")
+    def has_key(self, key):
+        return key in self._queue
