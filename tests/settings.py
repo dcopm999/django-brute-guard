@@ -151,14 +151,11 @@ LOGGING = {
     },
 }
 
-LOGIN_BRUTEFORCE_DETECT_PARAMETERS = {
-    "error_attempts_counter": 5,
-    # при достижении такого количества неверных
-    # попыток авторизации для определенного логина он будет
-    # временно заблокирован для входа
-    "base_blocking_rate_minutes": 5,
-    # время блокировки учетки в минутах
-    "multiple_blocking_rate": True
-    # использование прогрессивной шкалы блокировки - с каждой неверной попыткой
-    # свыше лимита время блокировки будет увеличиваться
+BRUTE_GUARD = {
+    "VALIDATORS": ["BruteForceValidator"],
+    "OPTIONS": {
+        "error_attempts_counter": 5,
+        "base_blocking_rate_minutes": 1,
+        "multiple_blocking_rate": True,
+    },
 }

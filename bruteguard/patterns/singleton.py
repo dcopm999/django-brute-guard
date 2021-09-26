@@ -1,4 +1,3 @@
-import gc
 from typing import Dict
 
 
@@ -24,7 +23,6 @@ class SingletonMeta(type):
 
 class Singleton(object):
     def __new__(cls):
-        gc.disable()
         if not hasattr(cls, "instance"):
             cls.instance = super(Singleton, cls).__new__(cls)
         return cls.instance
