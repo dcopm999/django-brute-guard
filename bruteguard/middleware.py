@@ -18,8 +18,9 @@ def brute_guard(get_response):
     def middleware(request: HttpRequest) -> HttpResponse:
         logger.debug("[%s.brute_guard] request verification" % __name__)
         assert isinstance(request, HttpRequest)
-        response: HttpResponse = get_response(request)
-        manager.operation(request, response)
+        response = get_response(request)
+        if isinstance(response, HttpResponse):
+            manager.operation(request, response)
         return response
 
     return middleware

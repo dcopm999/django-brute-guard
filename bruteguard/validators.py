@@ -76,8 +76,6 @@ class BruteForceValidator(Leaf):
         row = models.Blocked(
             remote_addr=REMOTE_ADDR,
             path_info=PATH_INFO,
-            username=REQUEST_BODY.get("username"),
-            password=REQUEST_BODY.get("password"),
             csrf=REQUEST_BODY.get("csrfmiddlewaretoken"),
             until=UNTIL,
         )
@@ -131,9 +129,7 @@ class BruteForceValidator(Leaf):
         assert isinstance(response, HttpResponse)
 
         self.until_verify(request)
-        if hasattr(response, "context_data") and not response.context_data.get(
-            "has_permission"
-        ):
+        if hasattr(response, "context_data") and response.context_data is not None:
             self.attempts_counter(request)
 
         if len(self.get_attempts(request)) >= self._OPTIONS.get(

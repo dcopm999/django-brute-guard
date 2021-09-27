@@ -11,8 +11,6 @@ logger = logging.getLogger(__name__)
 class Blocked(models.Model):
     remote_addr = models.GenericIPAddressField(verbose_name=_("REMOTE_ADDR"))
     path_info = models.TextField(verbose_name=_("PATH_INFO"))
-    username = models.CharField(max_length=100, verbose_name=_("USERNAME"))
-    password = models.CharField(max_length=100, verbose_name=_("PASSWORD"))
     csrf = models.CharField(max_length=100, verbose_name=_("CSRF"))
     until = models.DateTimeField(editable=False, verbose_name=_("UNTIL"))
     created = models.DateTimeField(
