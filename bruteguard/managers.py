@@ -16,10 +16,16 @@ class BaseManager(Composite):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.QUEUE = self.QUEUE()
-        self.VALIDATORS = [
-            getattr(validators, item) for item in settings.BRUTE_GUARD.get("VALIDATORS")
-        ]
-        for validator in self.VALIDATORS:
+
+        try:
+            VALIDATORS = [
+                getattr(validators, item)
+                for item in settings.BRUTE_GUARD.get("VALIDATORS")
+            ]
+        except TypeError:
+            VALIDATORS = []
+
+        for validator in VALIDATORS:
             self.add(validator())
 
     def operation(self, request, response):

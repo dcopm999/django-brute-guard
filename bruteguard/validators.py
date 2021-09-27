@@ -13,8 +13,15 @@ logger = logging.getLogger(__name__)
 
 
 class BruteForceValidator(Leaf):
-
-    _OPTIONS = settings.BRUTE_GUARD.get("OPTIONS")
+    def __init__(self):
+        super().__init__()
+        self._OPTIONS = settings.BRUTE_GUARD.get("OPTIONS")
+        if self._OPTIONS is None:
+            self._OPTIONS = {
+                "error_attempts_counter": 5,
+                "base_blocking_rate_minutes": 1,
+                "multiple_blocking_rate": False,
+            }
 
     def get_request_body(self, request) -> Dict[str, str]:
         """
@@ -45,12 +52,12 @@ class BruteForceValidator(Leaf):
                 % (self.__class__.__name__, REMOTE_ADDR)
             )
             # если settings.BRUTE_GUARD.OPETIONS["multiple_blocking_rate"] = True
-            if self._OPTIONS.get("multiple_blocking_rate", False):
+            if self._OPTIONS.get("multiple_blocking_rate"):
                 # получаем время блокировки из settings.BRUTE_GUARD.OPETIONS["base_blocking_rate_minutes"]
                 minutes = int(self._OPTIONS.get("base_blocking_rate_minutes"))
                 # Увеличиваем время блокировки
                 models.Blocked.host_until_increase(REMOTE_ADDR, minutes)
-                logger.debug(
+                logger.info(
                     "[%s.until_verify()]: REMOTE_ADDR: %s blocking increased"
                     % (self.__class__.__name__, REMOTE_ADDR)
                 )
@@ -76,8 +83,6 @@ class BruteForceValidator(Leaf):
         row = models.Blocked(
             remote_addr=REMOTE_ADDR,
             path_info=PATH_INFO,
-            username=REQUEST_BODY.get("username"),
-            password=REQUEST_BODY.get("password"),
             csrf=REQUEST_BODY.get("csrfmiddlewaretoken"),
             until=UNTIL,
         )
@@ -131,9 +136,7 @@ class BruteForceValidator(Leaf):
         assert isinstance(response, HttpResponse)
 
         self.until_verify(request)
-        if hasattr(response, "context_data") and not response.context_data.get(
-            "has_permission"
-        ):
+        if hasattr(response, "context_data"):
             self.attempts_counter(request)
 
         if len(self.get_attempts(request)) >= self._OPTIONS.get(
