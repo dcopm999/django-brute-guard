@@ -31,22 +31,35 @@ Add it to your `INSTALLED_APPS`:
 
     INSTALLED_APPS = (
         ...
-        'bruteguard.apps.BruteguardConfig',
+        "bruteguard",
         ...
     )
+
+    MIDDLEWARE = [
+	...
+	"bruteguard.middleware.brute_guard",
+    ]
+
+    BRUTE_GUARD = {
+    "MANAGER": "SingletonManager", # or "DjangoCacheManager"
+    "VALIDATORS": ["BruteForceValidator"],
+    "OPTIONS": {
+            "error_attempts_counter": 5,
+            "base_blocking_rate_minutes": 1,
+            "multiple_blocking_rate": True,
+        },
+    }
 
 Add Django brute-forece guard's URL patterns:
 
 .. code-block:: python
 
-    from bruteguard import urls as bruteguard_urls
-
-
     urlpatterns = [
         ...
-        url(r'^', include(bruteguard_urls)),
+        path("bruteguard/", include(bruteguard_urls)),
         ...
     ]
+
 
 Features
 --------
