@@ -152,6 +152,7 @@ LOGGING = {
 }
 
 BRUTE_GUARD = {
+    "MANAGER": "SingletonManager",
     "VALIDATORS": ["BruteForceValidator"],
     "OPTIONS": {
         "error_attempts_counter": 5,

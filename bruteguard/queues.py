@@ -102,7 +102,7 @@ class SingletonQueue(BaseQueue, Singleton):
         return True
 
     def remove(self, key):
-        assert isinstance(self, key, str)
+        assert isinstance(key, str)
         del self._queue[key]
         logger.debug(
             "[%s.remove(key)]: key=%s, result=%s"
