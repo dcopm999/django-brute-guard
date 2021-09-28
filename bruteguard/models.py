@@ -3,6 +3,7 @@ import datetime
 import logging
 
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
@@ -26,9 +27,7 @@ class Blocked(models.Model):
     @classmethod
     def host_until_gt_now(self, remote_addr: str):
         assert isinstance(remote_addr, str)
-        return self.objects.filter(
-            remote_addr=remote_addr, until__gt=datetime.datetime.now()
-        )
+        return self.objects.filter(remote_addr=remote_addr, until__gt=timezone.now())
 
     @classmethod
     def host_is_blocked(self, remote_addr: str):

@@ -5,6 +5,7 @@ from typing import Dict
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse
+from django.utils import timezone
 
 from bruteguard import models
 from bruteguard.patterns.composite import Leaf
@@ -33,13 +34,13 @@ class BruteForceValidator(Leaf):
             item.split("=") for item in body.split("&") if len(body)
         )
         if len(result):
-            result["datetime"] = str(datetime.datetime.now())
+            result["datetime"] = str(timezone.now())
         logger.debug(
             "[%s.get_request_body()]: result=%s" % (self.__class__.__name__, result)
         )
         return result
 
-    def until_verify(self, request):
+    def until_verify(self, request) -> None:
         """
         method for matching remote host in blocking list
         """
@@ -122,7 +123,7 @@ class BruteForceValidator(Leaf):
 
         # если запрос не пуст
         if len(REQUEST_BODY):
-            # обавляем в список попыток новую запись с содержимым запроса
+            # добавляем в список попыток новую запись с содержимым запроса
             ATTEMPTS.append(REQUEST_BODY)
             # записываем список попыток в очередь
             self.parent.QUEUE.set(KEY, ATTEMPTS)
