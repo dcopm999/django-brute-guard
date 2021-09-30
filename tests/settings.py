@@ -43,6 +43,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "bruteguard.middleware.brute_guard",
 ]
 
 ROOT_URLCONF = "tests.urls"
@@ -112,3 +113,50 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = "/static/"
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {"format": "%(levelname)s %(asctime)s %(module)s %(message)s"},
+    },
+    "handlers": {
+        "syslog": {
+            "level": "INFO",
+            "class": "logging.handlers.SysLogHandler",
+            "facility": "local7",
+            "address": "/dev/log",
+            "formatter": "verbose",
+        },
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "syslog"],
+        },
+        "django.db": {
+            "handlers": ["console", "syslog"],
+        },
+        "django.request": {
+            "handlers": ["console", "syslog"],
+        },
+        "bruteguard": {
+            "level": "DEBUG",
+            "handlers": ["console", "syslog"],
+        },
+    },
+}
+
+BRUTE_GUARD = {
+    "MANAGER": "SingletonManager",
+    "VALIDATORS": ["BruteForceValidator"],
+    "OPTIONS": {
+        "error_attempts_counter": 5,
+        "base_blocking_rate_minutes": 1,
+        "multiple_blocking_rate": True,
+    },
+}
