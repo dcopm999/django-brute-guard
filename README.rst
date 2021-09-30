@@ -41,9 +41,9 @@ Add it to your `INSTALLED_APPS`:
     ]
 
     BRUTE_GUARD = {
-    "MANAGER": "SingletonManager", # or "DjangoCacheManager"
-    "VALIDATORS": ["BruteForceValidator"],
-    "OPTIONS": {
+        "MANAGER": "SingletonManager", # or "DjangoCacheManager"
+        "VALIDATORS": ["BruteForceValidator"],
+        "OPTIONS": {
             "error_attempts_counter": 5,
             "base_blocking_rate_minutes": 1,
             "multiple_blocking_rate": True,
